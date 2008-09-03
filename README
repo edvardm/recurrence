@@ -1,0 +1,70 @@
+= Recurrence
+
+== Overview
+
+Recurrence provides a simple class for handling recurring, time-associated objects. The goal is to create a general-purpose,
+loosely coupled class library to provide common functionality for events occurring at predetermined intervals.
+
+Short example:
+
+  require 'recurrence'
+
+  first_of_june = [2008, 6, 1] 
+  r = Recurrence.new(first_of_june, :every_other => :week, :until => '2010-06-01')
+
+  my_cal = MyCalendar.new_default
+  my_cal.each_day { |date|
+    time = Time.parse(date) # assuming date can be parsed with Time.parse
+    puts 'Yay! today is the day!' if r.recurs_on?(time)
+  }
+
+== Set-like operations
+
+Real power of Recurrence lies in it's support for set-like operations +join+, +intersect+, +diff+ and +complement+. For example, 
+given the start date of 2008-06-01, recur something every thursday and friday:
+
+  require 'recurrence'
+
+  start_date = '2008-06-01'
+  r1 = Recurrence.new(start_date, :every => :thursday)
+  r2 = Recurrence.new(start_date, :every => :friday)
+  r = r1.join(r2)
+
+Another example, a tad contrived perhaps: 
+
+  # Recur something every friday, except if it is last friday of the month:
+
+  dow = :friday
+  r1 = Recurrence.new(:epoch, :every => dow)
+  r2 = Recurrence.new(:epoch, :every_last => dow, :of => :month)
+
+  r = r1.diff(r2)
+
+Nested set-like operations are also possible. So, for arbitrary recurrences a and b and any time t, the following should always apply:
+
+  r1 = (a.join(b)).complement
+  r2 = (a.complement).intersect(b.complement) 
+
+  r1.recurs_on?(t) == r2.recurs_on?(t) # De Morgan's law - complement of a union is the same as intersection of the complements
+
+See RecurrenceBase::SetOperations for more.
+
+== Installation
+
+Enter
+
+  rake gem
+  
+on the command line in the same directory as this README file, it should produce the gem under the pkg directory.
+Then you should be able to say
+
+  sudo gem install pkg/recurrence*.gem
+  
+to install the gem to your local system.
+
+KTHXBAI
+  
+== License
+
+MIT (see MIT-LICENSE)
+
