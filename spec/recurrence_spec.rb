@@ -47,10 +47,18 @@ describe Recurrence do
   
   it "should return starting date of week in short form" do
     r = Recurrence.new([2008, 8, 27], :every => :day)
-    r.starting_dow(:short).should == :we
+    r.starting_dow(:short).should == :wed
   end
 
   describe "recurring every <interval>" do
+    it "should not recur before initial date" do
+      Recurrence.new('2008-08-27', :every => :day).should_not recur_on('2008-08-26')
+    end
+
+    it "should not recur after final date" do
+      Recurrence.new('2008-08-27', :every => :day, :until => '2008-10-1').should_not recur_on('2008-10-2')
+    end
+
     it "should recur daily" do
       r = Recurrence.new([2008, 9, 2], :every => :day)
 
@@ -60,15 +68,7 @@ describe Recurrence do
       end
     end
     
-    it "should not recur before initial date" do
-      Recurrence.new('2008-08-27', :every => :day).should_not recur_on('2008-08-26')
-    end
-    
-    it "should not recur after final date" do
-      Recurrence.new('2008-08-27', :every => :day, :until => '2008-10-1').should_not recur_on('2008-10-2')
-    end
-
-    it "should recur ad infinitum if until is not specified (well, 2038-01-20 is the day Time instances go boink unless fixedASA)" do
+    it "should recur ad infinitum if until is not specified (well, 2038-01-20 is the day Time instances go boink unless fixed)" do
       Recurrence.new(:epoch, :every => :day).should recur_on('2038-01-19')
     end
 
@@ -102,7 +102,7 @@ describe Recurrence do
     it "should recur every weekend" do
       r = Recurrence.new(:epoch, :every => :weekend)
 
-      (2..3).each do |day|
+      (2..3).each do |day| # saturday, sunday
         r.should recur_on(Time.local(2008, 8, day))
       end
       (4..8).each do |day|
@@ -155,7 +155,6 @@ describe Recurrence do
       [2, 4, 6].each { |m| r.should_not recur_on(Time.local(year, m, day)) }
       [1, 3, 5].each { |m| r.should recur_on(Time.local(year, m, day)) }
     end
-    
     
     it "should recur every other year" do
       month, day = 4, 29

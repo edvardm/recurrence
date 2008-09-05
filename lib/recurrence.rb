@@ -87,6 +87,8 @@ module RecurrenceBase
   end
 
   module RecurrenceMixin
+    # TODO: make repeat intervals more consistent, so that only every_second is needed instead of every_other, and the semantics
+    # depend whether the argument is one of [day, week, month, year] OR weekdays
     attr_reader :recur_from, :recur_until
 
     _RECURRENCES = [:day, :week, :month, :year]
@@ -98,8 +100,8 @@ module RecurrenceBase
       :every_first => DAYS,
       :every_second => DAYS,
       :every_last => DAYS,
-      :every_other => _RECURRENCES, # TODO: support recurrence_extensions, they make sense
-      :every_third => _RECURRENCES, # TODO: cf. above
+      :every_other => _RECURRENCES,
+      :every_third => _RECURRENCES,
       :every_nth => _RECURRENCES
       }
 
@@ -114,14 +116,11 @@ module RecurrenceBase
         repeat_every_since(recur_from, time, @_recurrence_type)
       when :every_other, :every_third, :every_nth
         recurrence_repeats_on? recur_from, time, @_recurrence_type, every_star_to_num
-      when :every_first, :every_second
-        n = @_recurrence_repeat == :every_first ? 1 : 2
+      when :every_first, :every_second, :every_last
+        sym_to_num = {:every_first => 1, :every_second => 2, :every_last => -1}
+        n = sym_to_num[@_recurrence_repeat]
         weekday = @_recurrence_type
         weekday_is_nth_in?(n, @_recurrence_options[:of], weekday, time)
-      when :every_last # DRY: generalize weekday_is_nth_in and weekday_is_last_in, maybe using negative arg for last?
-        weekday = @_recurrence_type
-        repeat_period = @_recurrence_options[:of]
-        weekday_is_last_in?(repeat_period, weekday, time)
       else
         raise "No you can't has cheezburger with repeat #{@_recurrence_repeat}"
       end
@@ -134,7 +133,7 @@ module RecurrenceBase
     #
     #  r = Recurrence.new([2008, 1, 1], :every => :day)
     #  r.starting_dow # => :tuesday 
-    #  r.starting_dow(:short) # => :tu
+    #  r.starting_dow(:short) # => :tue
     def starting_dow(format=nil)
       format ||= :long
       wday = DAYS[@recur_from.wday]
@@ -142,7 +141,7 @@ module RecurrenceBase
       when :long
         wday
       when :short
-        wday.to_s[0..1].to_sym
+        wday.to_s[0..2].to_sym
       else
         raise ArgumentError, 'invalid format'
       end
@@ -246,7 +245,6 @@ module RecurrenceBase
       end
     end
 
-
     def weekday_is_nth_in?(n, period, weekday, time)
       case period
       when :month
@@ -255,20 +253,12 @@ module RecurrenceBase
         raise ArgumentError, 'oh noes'
       end
     end
-    
-    def weekday_is_last_in?(period, weekday, time)
-      # DRY: duplication with prev method
-      case period
-      when :month
-        dim = Date.days_in_month(time.year, time.mon)
-        DAYS[time.wday] == weekday && time.day > dim - 7
-      else 
-        raise ArgumentError, 'oh noes'
-      end
-    end
 
     def nth_weekday_in_month?(n, weekday, time)
-      if n > 1 
+      if n == -1
+        dim = Date.days_in_month(time.year, time.mon)
+        DAYS[time.wday] == weekday && time.day > dim - 7
+      elsif n > 1 
         DAYS[time.wday] == weekday && time.day > 7*(n-1) && time.day <= 7*n
       else
         DAYS[time.wday] == weekday && time.day < 8
@@ -328,8 +318,8 @@ class Recurrence
   # of the recurrence (:every, :every_first, :every_second, :every_other, :every_third, :every_nth)
   # and the value specifies the time unit (:day, :week, :month, :year). 
   # 
-  # Note that every_first and every_second refer to specific weekday and make sense only with monthly and yearly
-  # recurrences. They also require the argument :of. Note that the semantics depend on the context of all the arguments.
+  # *Note* that every_first and every_second refer to specific _weekday_ and make sense only with monthly and yearly
+  # recurrences. They also require the argument :of. That is, the semantics depend on the context of all the arguments. 
   #
   # For example:
   #
