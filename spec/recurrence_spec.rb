@@ -18,21 +18,21 @@ describe Recurrence do
     end
 
     it "should accept Time.local style argument list" do
-      Recurrence.new([2008, 8, 27], :every => :day).recur_from.should == Time.local(2008, 8, 27)
+      Recurrence.new([2008, 8, 27], :every => :day).recur_from.should == Time.local(2008, 8, 27, 12, 0)
     end
 
     it "should accept a time string" do
-      Recurrence.new('2008-08-27', :every => :day).recur_from.should == Time.local(2008, 8, 27)
+      Recurrence.new('2008-08-27', :every => :day).recur_from.should == Time.local(2008, 8, 27, 12, 0)
     end
     
     it "should accept the symbol epoch" do
-      Recurrence.new(:epoch, :every => :day).recur_from.should == Time.local(1970, 1, 1)
+      Recurrence.new(:epoch, :every => :day).recur_from.should == Time.local(1970, 1, 1, 12, 0)
     end
   end
 
   it "should return initialization time" do
     r = Recurrence.new([2008, 8, 27], :every => :day)
-    r.recur_from.should == Time.local(2008, 8, 27)
+    r.recur_from.should == Time.local(2008, 8, 27, 12, 0)
   end
 
   it "should allow time string argument for recurs_on?" do
@@ -68,8 +68,8 @@ describe Recurrence do
       end
     end
     
-    it "should recur ad infinitum if until is not specified (well, 2038-01-20 is the day Time instances go boink unless fixed)" do
-      Recurrence.new(:epoch, :every => :day).should recur_on('2038-01-19')
+    it "should recur ad infinitum if until is not specified (well, 2038-01-19 is the day Time instances go boink unless fixed)" do
+      Recurrence.new(:epoch, :every => :day).should recur_on('2038-01-18')
     end
 
     it "should recur weekly" do
@@ -380,26 +380,49 @@ describe Recurrence do
     days.should == [1, 3, 5]
   end
 
-  it "should yield every week" do
-    r = Recurrence.new(:epoch, :every => :week)
-    weekdays = []
+  describe 'iteration' do
+    it "should yield every week" do
+      r = Recurrence.new(:epoch, :every => :week)
+      weekdays = []
+
+      r.each {|t|
+        weekdays << t.wday
+        break if weekdays.length > 3
+      }
+      weekdays.should == [r.recur_from.wday] * 4
+    end
     
-    r.each {|t|
-      weekdays << t.wday
-      break if weekdays.length > 3
-    }
-    weekdays.should == [r.recur_from.wday] * 4
+    it "should yield every given weekday" do
+      r = Recurrence.new([2008, 9, 1], :every => :sunday)
+      count = 0
+
+      r.each {|t|
+        RecurrenceBase::RecurrenceMixin::DAYS[t.wday].should == :sunday
+        count += 1
+        break if count == 10
+      }
+      count.should == 10
+
+      r = Recurrence.new([2008, 9, 1], :every => :wednesday)
+      count = 0
+
+      r.each {|t|
+        RecurrenceBase::RecurrenceMixin::DAYS[t.wday].should == :wednesday
+        count += 1
+        break if count == 10
+      }
+      count.should == 10
+    end
+
+    it "should yield every month, setting the date to last in month if overlapping" do
+      r = Recurrence.new('2008-01-31', :every => :month)
+      days_months = []
+
+      r.each {|t|
+        break if days_months.length > 3
+        days_months << [t.day, t.mon]
+      }
+      days_months.should == [[31, 1], [29, 2], [31, 3], [30,4]]
+    end
   end
-  
-  it "should yield every month, setting the date to last in month if overlapping" do
-    r = Recurrence.new('2008-01-31', :every => :month)
-    days_months = []
-    
-    r.each {|t|
-      break if days_months.length > 3
-      days_months << [t.day, t.mon]
-    }
-    days_months.should == [[31, 1], [29, 2], [31, 3], [30,4]]
-  end
-  
 end

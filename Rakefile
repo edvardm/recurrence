@@ -9,7 +9,7 @@ require 'rake/gempackagetask'
 require './lib/recurrence.rb'
 
 CLEAN << 'doc' << 'pkg'
-GEM_VERSION = '0.1.2'
+GEM_VERSION = '0.1.13'
 
 spec = Gem::Specification.new do |s|
   s.name = 'recurrence'

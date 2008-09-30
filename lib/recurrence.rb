@@ -157,11 +157,18 @@ module RecurrenceBase
       rtype = @recurrence_type
       old_time = time
       orig_day = time.day
+      
+      if weekday_recurrence?(rtype)
+        day_diff = DAYS.index(rtype) - time.wday
+        day_diff = 7 + day_diff if day_diff < 0
+        time += 86400*(day_diff)
+      end
+      
       loop do
         yield time
         if rtype == :day
           time += multiplier*86400
-        elsif rtype == :week
+        elsif rtype == :week || weekday_recurrence?(rtype)
           time += multiplier*86400*7
         elsif rtype == :month
           y, m, d = time.year, time.mon, time.day
@@ -189,6 +196,10 @@ module RecurrenceBase
 
     private
 
+    def weekday_recurrence?(rtype)
+      DAYS.include? rtype
+    end
+    
     def every_star_to_num
       hsh = {
         :every => 1,
@@ -268,18 +279,24 @@ module RecurrenceBase
       end
     end
 
-    def evaluate_time_arg(t)
-      case t
-      when Time
-        Time.local(t.year, t.mon, t.day) # discard extra resolution not used in for time comparisons
-      when String
-        Time.local(*t.split('-'))
-      when Array
-        Time.local(*t)
-      when Symbol
-        symbol_to_time(t)
+    def evaluate_time_arg(time_arg)
+      t = case time_arg
+          when String
+            Time.local(*time_arg.split('-'))
+          when Array
+            Time.local(*time_arg)
+          when Symbol
+            symbol_to_time(time_arg)
+          when nil, Time
+            time_arg
+          else
+            raise ArgumentError, "invalid timey thing passed as argument: #{time_arg.inspect}"
+          end
+      # discard extra resolution not used and set it to midday for avoiding daylight saving problems
+      if !t.nil?
+        Time.local(t.year, t.month, t.day, 12, 0)
       else
-        raise ArgumentError, "invalid time format #{t.inspect}"
+        nil
       end
     end
 
@@ -338,8 +355,7 @@ class Recurrence
   def initialize(init_time, options)
     @recur_from = evaluate_time_arg(init_time)
 
-    @recur_until = options.delete(:until)
-    @recur_until = evaluate_time_arg(@recur_until) if @recur_until
+    @recur_until = evaluate_time_arg(options.delete(:until))
 
     @recurrence_repeat, @recurrence_type = parse_recurrence_options(options)
     @recurrence_options = options
