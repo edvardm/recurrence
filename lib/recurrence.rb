@@ -96,7 +96,7 @@ module RecurrenceBase
 
     DAYS = [:sunday, :monday, :tuesday, :wednesday, :thursday, :friday, :saturday]
     RECURRENCE_SELECTORS = {
-      :every => _RECURRENCES + _RECURRENCE_EXTENSIONS,
+      :every => _RECURRENCES + _RECURRENCE_EXTENSIONS + DAYS,
       :every_first => DAYS,
       :every_second => DAYS,
       :every_last => DAYS,
@@ -111,18 +111,18 @@ module RecurrenceBase
       time = evaluate_time_arg(time_thing)
       return false unless time_between_begin_end(time)
 
-      case @_recurrence_repeat
+      case @recurrence_repeat
       when :every
-        repeat_every_since(recur_from, time, @_recurrence_type)
+        repeat_every_since(recur_from, time, @recurrence_type)
       when :every_other, :every_third, :every_nth
-        recurrence_repeats_on? recur_from, time, @_recurrence_type, every_star_to_num
+        recurrence_repeats_on? recur_from, time, @recurrence_type, every_star_to_num
       when :every_first, :every_second, :every_last
         sym_to_num = {:every_first => 1, :every_second => 2, :every_last => -1}
-        n = sym_to_num[@_recurrence_repeat]
-        weekday = @_recurrence_type
-        weekday_is_nth_in?(n, @_recurrence_options[:of], weekday, time)
+        n = sym_to_num[@recurrence_repeat]
+        weekday = @recurrence_type
+        weekday_is_nth_in?(n, @recurrence_options[:of], weekday, time)
       else
-        raise "No you can't has cheezburger with repeat #{@_recurrence_repeat}"
+        raise "No you can't has cheezburger with repeat #{@recurrence_repeat}"
       end
     end
 
@@ -154,7 +154,7 @@ module RecurrenceBase
 
       multiplier = every_star_to_num
         
-      rtype = @_recurrence_type
+      rtype = @recurrence_type
       old_time = time
       orig_day = time.day
       loop do
@@ -194,9 +194,9 @@ module RecurrenceBase
         :every => 1,
         :every_other => 2,
         :every_third => 3,
-        :every_nth => @_recurrence_options[:interval]
+        :every_nth => @recurrence_options[:interval]
       }
-      hsh[@_recurrence_repeat]
+      hsh[@recurrence_repeat]
     end
 
     def parse_recurrence_options(opts)
@@ -240,8 +240,11 @@ module RecurrenceBase
         recur_from.day == time.day && (time.mon - recur_from.mon) % n == 0
       when :year
         recur_from.day == time.day && recur_from.mon == time.mon && (time.year - recur_from.year) % n == 0
+      when *DAYS
+        flunk('Uh oh. This code is crap') if n != 1
+        DAYS[time.wday] == recurrence_type
       else
-        raise ArgumentError, "invalid recurrence type #{@_recurrence_type}"
+        raise ArgumentError, "invalid recurrence type #{@recurrence_type}"
       end
     end
 
@@ -338,7 +341,7 @@ class Recurrence
     @recur_until = options.delete(:until)
     @recur_until = evaluate_time_arg(@recur_until) if @recur_until
 
-    @_recurrence_repeat, @_recurrence_type = parse_recurrence_options(options)
-    @_recurrence_options = options
+    @recurrence_repeat, @recurrence_type = parse_recurrence_options(options)
+    @recurrence_options = options
   end
 end

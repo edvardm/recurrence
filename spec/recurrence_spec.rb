@@ -80,6 +80,19 @@ describe Recurrence do
       end
       r.should recur_on(Time.local(2008, 8, 8))
     end
+    
+    it "should recur every given weekday" do
+      year, mon = 2008, 9
+      r = Recurrence.new(Time.local(year, mon, 1), :every => :wednesday)
+
+      [1, 2, 4, 5, 6, 7, 8, 9, 11].each do |day|
+        r.should_not recur_on(Time.local(year, mon, day))
+      end
+      [3, 10].each do |day|
+        r.should recur_on(Time.local(year, mon, day))
+      end
+    end
+    
 
     it "should recur monthly" do
       r = Recurrence.new(Time.local(2008, 8, 24), :every => :month)
