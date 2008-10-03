@@ -1,10 +1,5 @@
 require File.dirname(__FILE__) + '/spec_helper'
 
-# TODO: 
-
-# Recurrence.new(time, :last => :day, :in  => :month)
-# Recurrence.new(:monday, :every_third => :week)
-
 describe Recurrence do
   def recur_on(date)
     # TODO: replace this with more heavy-weight custom matcher which results in more informative
@@ -443,17 +438,44 @@ describe Recurrence do
     end
     
     it "should recur only on the first wednesday of a month starting from today" do
-      pending
       r = Recurrence.new(:today, :every_first => :wednesday, :of => :month) 
+      date = r.start_date
+      hits = []
+      40.times { 
+        hits << date if r.recurs_on?(date)
+        date += 1
+      }
+      hits.map { |d| d.wday }.should == [3] # wednesday is at index 3
     end
-    # 
-    #  
-    #
-    #  # recur only on every last thursday of a month, starting from today
-    #  Recurrence.new(:today, :every_last => :thursday, :of => :month)
-    #
-    #  Recurrence.new([2008, 10, 7], :every => :week) # 2008-01-07 was xday, so recur every xday
-    #  Recurrence.new([2008, 10, 7], :every => :wednesday) # recur every wednesday starting from 2008-10-07
-    #  Recurrence.new("2008-09-04", :every => :month) # Recur on the 4th day of every month
+    
+    it "should recur only on every last thursday of a month, starting from today" do
+      r = Recurrence.new(:today, :every_last => :thursday, :of => :month)
+      hits = []
+      date = r.start_date
+      40.times { 
+        hits << date if r.recurs_on?(date)
+        date += 1
+      }
+      hits.map { |d| d.wday }.should == [4]
+    end
+
+    it "should recur once a week starting from 1st day" do
+      r = Recurrence.new([2008, 10, 7], :every => :week)
+      [7, 14, 21].each { |day| r.should recur_on([2008, 10, day]) }
+    end
+    
+    it "should recur every wednesday starting from given date" do
+      r = Recurrence.new([2008, 10, 7], :every => :wednesday)
+      r.should recur_on([2008, 10, 8]) # 8th is wednesday
+    end
+
+    it "should recur every nth day of month" do
+      r = Recurrence.new("2008-09-04", :every => :month) # Recur on the 4th day of every month
+      [9, 10, 11].each { |mon| 
+        r.should_not recur_on([2008, mon, 3])  
+        r.should recur_on([2008, mon, 4]) 
+        r.should_not recur_on([2008, mon, 5]) 
+      }
+    end
   end
 end

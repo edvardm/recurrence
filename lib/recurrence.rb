@@ -314,7 +314,7 @@ module RecurrenceBase
       case sym
       when :epoch
         Date.new(1970, 1, 1)
-      when :now
+      when :today
         Date.today
       else
         raise ArgumentError, "invalid date spec #{sym}"
@@ -343,7 +343,7 @@ class Recurrence
   # - Time instance (only date part will be taken into account)
   # - Array of integers [Y, m, d] (eg. [2008, 7, 25])
   # - Special symbol :epoch, denoting the common *nix time epoch 1970-01-01
-  # - Special symbol :now, denoting the current day
+  # - Special symbol :today, denoting the current day
   #
   # +init_time+ is used for deferring whether the recurrence is valid at given time. All calls to recurs_on?
   # with time before +init_time+ return false. The hour/minute part is ignored.
