@@ -438,7 +438,8 @@ describe Recurrence do
     end
     
     it "should recur only on the first wednesday of a month starting from today" do
-      r = Recurrence.new(:today, :every_first => :wednesday, :of => :month) 
+      date = Date.new(2008, 9, 15)
+      r = Recurrence.new(date, :every_first => :wednesday, :of => :month) 
       date = r.start_date
       hits = []
       40.times { 
