@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'recurrence'
-  s.version = '0.1.14'
+  s.version = '0.1.15'
   s.author = 'Edvard Majakari'
   s.email = 'edvard.majakari@adalia.fi'
   #s.homepage = 
