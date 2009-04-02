@@ -24,6 +24,27 @@ describe Recurrence do
       Recurrence.new(:epoch, :every => :day).start_date.should == Date.new(1970, 1, 1)
     end
   end
+  
+  describe("comparison") do
+    it "should be equal to another if until, start_date and recurrence types match" do
+      r1 = Recurrence.new('2008-08-27', :every_second => :week, :until => '2008-10-1')
+      r2 = Recurrence.new('2008-08-27', :every_second => :week, :until => '2008-10-1')
+      (r1 == r2).should be_true
+    end
+
+    it "should not be equal even if only until differs" do
+      r1 = Recurrence.new('2008-08-27', :every_second => :week, :until => '2008-10-2')
+      r2 = Recurrence.new('2008-08-27', :every_second => :week, :until => '2008-10-1')
+      (r1 == r2).should be_false
+    end
+    
+  end
+
+  describe 'AR integration' do
+    it "should be saveable" do
+      r1 = Recurrence.new('2008-08-27', :every_second => :week, :until => '2008-10-1')
+    end
+  end
 
   it "should return initialization time" do
     r = Recurrence.new([2008, 8, 27], :every => :day)

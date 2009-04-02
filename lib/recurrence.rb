@@ -3,7 +3,7 @@ Simple class for recurring things. The idea is to decouple recurrence completely
 offers two key methods for finding out if something recurs at given date: the method <tt>recurs_on?(time)</tt> and +each+ to iterate through recurrences.
 =end
 
-# Edvard Majakari <edvard.majakari@adalia.fi>
+# Edvard Majakari <edvard@majakari.net>
 
 require 'date'
 
@@ -127,6 +127,10 @@ module RecurrenceBase
       end
     end
     
+    def to_s
+      ":#{@recurrence_repeat} => :#{@recurrence_type}, :start_date => #{self.start_date}, :recur_until => #{@recur_until}"
+    end
+    
     def recur_from
       deprecation_warning(:recur_from, :start_date)
       start_date
@@ -205,10 +209,12 @@ module RecurrenceBase
         # make sure the date changes in the loop!
         fail unless date > old_date
         old_date = date
-      end
-    end
-
-    # end of public instance methods
+      end # loop
+    end # each_day
+    
+    #
+    # Private instance methods 
+    #
 
     private
 
@@ -293,7 +299,6 @@ module RecurrenceBase
     end
 
     def evaluate_date_arg(time_arg)
-      # TODO: raise error on nil
       case time_arg
       when String
         Date.parse(time_arg)
@@ -301,7 +306,7 @@ module RecurrenceBase
         Date.new(*time_arg)
       when Symbol
         symbol_to_date(time_arg)
-      when nil, Date
+      when Date
         time_arg
       when Time
         Date.new(time_arg.year, time_arg.month, time_arg.day)
@@ -334,6 +339,8 @@ end
 class Recurrence
   include RecurrenceBase::SetOperations
   include RecurrenceBase::RecurrenceMixin
+  
+  attr_reader :recurrence_repeat, :recurrence_type, :recur_until
   
   alias :each :each_day # each is more convenient with Recurrence instances, but in a mixin it would probably be a bad idea
 
@@ -371,11 +378,21 @@ class Recurrence
   #  Recurrence.new([2008, 10, 7], :every => :wednesday) # recur every wednesday starting from 2008-10-07
   #  Recurrence.new("2008-09-04", :every => :month) # Recur on the 4th day of every month
   def initialize(init_time, options)
+    # these are public attrs
     @recur_from = evaluate_date_arg(init_time)
 
-    @recur_until = evaluate_date_arg(options.delete(:until))
-
+    until_time = options.delete(:until)
+    @recur_until = until_time.nil? ? nil : evaluate_date_arg(until_time)
     @recurrence_repeat, @recurrence_type = parse_recurrence_options(options)
+
+    # this is private
     @recurrence_options = options
+  end
+  
+  def ==(other)
+    self.start_date == other.start_date &&
+    self.recur_until == other.recur_until && 
+    self.recurrence_type == other.recurrence_type &&
+    self.recurrence_repeat == other.recurrence_repeat
   end
 end
