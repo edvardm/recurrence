@@ -1,6 +1,6 @@
-= Recurrence
+h2. Recurrence
 
-== Overview
+h3. Overview
 
 Recurrence provides a simple class for handling recurring, time-associated objects. The goal is to create a general-purpose,
 loosely coupled class library to provide common functionality for events occurring at predetermined intervals.
@@ -18,7 +18,7 @@ Short example:
     puts 'Yay! today is the day!' if r.recurs_on?(time)
   }
 
-== Set-like operations
+h3. Set-like operations
 
 Real power of Recurrence lies in it's support for set-like operations +join+, +intersect+, +diff+ and +complement+. For example, 
 given the start date of 2008-06-01, recur something every thursday and friday:
@@ -32,7 +32,7 @@ given the start date of 2008-06-01, recur something every thursday and friday:
 
 Another example, a tad contrived perhaps: 
 
-  # Recur something every friday, except if it is last friday of the month:
+  #Recur something every friday, except if it is last friday of the month:
 
   dow = :friday
   r1 = Recurrence.new(:epoch, :every => dow)
@@ -49,7 +49,7 @@ Nested set-like operations are also possible. So, for arbitrary recurrences a an
 
 See RecurrenceBase::SetOperations for more.
 
-== Installation
+h3. Installation
 
 Enter
 
@@ -62,9 +62,16 @@ Then you should be able to say
   
 to install the gem to your local system.
 
+Alternatively, you can pull gem from the github:
+
+  # Add github gems to your gem sources (you can skip this if you have done so already)
+
+    sudo gem sources -a http://gems.github.com 
+  # sudo gem install EdvardM-recurrence
+
 KTHXBAI
   
-== License
+h3. License
 
 MIT (see MIT-LICENSE)
 
