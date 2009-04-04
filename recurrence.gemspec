@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'recurrence'
-  s.version = '0.1.15'
+  s.version = '0.1.16'
   s.author = 'Edvard Majakari'
   s.email = 'edvard.majakari@adalia.fi'
   #s.homepage = 
@@ -11,5 +11,5 @@ Gem::Specification.new do |s|
   s.require_path = 'lib'
   s.test_file = 'spec/recurrence_spec.rb'
   s.has_rdoc = 'true'
-  s.extra_rdoc_files = ['README']
+  s.extra_rdoc_files = ['README.textile']
 end
