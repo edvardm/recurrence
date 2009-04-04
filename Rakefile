@@ -24,8 +24,3 @@ Rake::RDocTask.new('doc') do |rd|
   rd.options << '--title' << 'Recurrence' << '--charset' << 'utf-8' << '--inline-source' << '--line-numbers' << '--main' << 'README'
   rd.rdoc_files.include('README', 'MIT-LICENSE', 'lib/**/*.rb')
 end
-
-spec = eval(File.read("#{File.dirname(__FILE__)}/recurrence.gemspec"))
-Rake::GemPackageTask.new(spec) do |pkg|
-  pkg.need_tar = true
-end
